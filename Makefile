@@ -5,7 +5,7 @@
 #	let us not quibble over trivialities such as these.
 ################################################################################
 SRCFILE=smsExtractor.py
-VERSION=1.1
+VERSION=1.2
 PREFIX=/usr
 SRC=src
 DESTDIR=$(PREFIX)

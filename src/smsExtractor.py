@@ -1,6 +1,6 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #===============================================================================
-#   smsExtractor.py     |   Version 1.1     |   FreeBSD License |   2015-09-14
+#   smsExtractor.py     |   Version 1.2     |   FreeBSD License |   2015-09-14
 #   James Hendrie       |   hendrie.james@gmail.com
 #
 #   Description:
@@ -33,8 +33,8 @@ def directory_setup( filename ):
         return( None, None, True )
 
     ##  Make the subdirectories
-    fDir = "%s.d/files" % filename
-    mDir = "%s.d/messages" % filename
+    fDir = os.path.join( "%s.d" % filename, "files" )
+    mDir = os.path.join( "%s.d" % filename, "messages" )
     os.mkdir( fDir )
     os.mkdir( mDir )
 
@@ -159,7 +159,6 @@ def extract( filename, c ):
 
 
 
-
 def print_help():
     print( "Usage:  smsExtractor.py FILE.xml" )
     print( """
@@ -182,16 +181,18 @@ https://play.google.com/store/apps/details?id=com.riteshsahu.SMSBackupRestore
 
 Options:
     -h or --help:       This help text
-    -V or --version:    Version and author info.""" )
+    -V or --version:    Version and author info.
+    -s or --subdirs:    Write files to individual subdirectories per each contact.""" )
+
 
 
 def print_version():
-    print( "smsExtractor.py, version 1.1" )
+    print( "smsExtractor.py, version 1.2" )
     print( "James Hendrie <hendrie.james@gmail.com>" )
 
 
 
-def write_messages( filename, mDir, fDir, c ):
+def write_messages( filename, mDir, fDir, c, subdirs ):
 
     ##  Grab all of the stuff from the database
     c.execute( """select * from messages order by date""" )
@@ -202,7 +203,7 @@ def write_messages( filename, mDir, fDir, c ):
     names = {}
     filesPresent = False
     for d in data:
-        if filesPresent == False and d[7] != None:
+        if filesPresent is False and d[7] is not None:
             filesPresent = True
 
         if d[1] not in addresses:
@@ -213,11 +214,13 @@ def write_messages( filename, mDir, fDir, c ):
     if not filesPresent:
         os.rmdir( fDir )
 
+    print( "Found %i pieces of data total with %i unique addresses" % ( len( data ), len( addresses ) ) )
 
     ##  Start up a couple of counters
     smsCount = 0
     mmsCount = 0
 
+    print( "Writing Message Text." )
     ##  Write all of the text messages to disk
     for a in addresses:
 
@@ -252,7 +255,7 @@ def write_messages( filename, mDir, fDir, c ):
         ##  Go through the messages list and write them to the file
         if len( messages ) > 0:
             ##  Files are named using an 'ADDRESS_NAME.txt' convention
-            fp = open( "%s/%s_%s.txt" % ( mDir, a, names[ a ] ), "w" )
+            fp = open( os.path.join( mDir, "%s_%s.txt" % ( a, names[a] ) ), "w" )
 
             ##  Write file to disk
             for m in messages:
@@ -263,16 +266,23 @@ def write_messages( filename, mDir, fDir, c ):
 
             fp.close()
 
-
+    print( "Writing Message Data." )
     ##  Write all of the MMS files to disk
     for d in data:
+        a = d[1]
         ##  If it's actually an MMS file
         if filesPresent and d[0] == "mms" and d[7] != None:
             ##  Increment counter
             mmsCount += 1
+            if subdirs:
+                fSubDir = os.path.join( fDir, "%s_%s" % ( a, names[a] ) )
+                if not os.path.exists( fSubDir ):
+                    os.mkdir( fSubDir )
+            else:
+                fSubDir = fDir
 
             ##  Open the file for binary writing, write the data, close the file
-            fp = open( "%s/%s" % (fDir, d[8]), "wb" )
+            fp = open( os.path.join( fSubDir, d[8] ), "wb")
             fp.write( d[7] )
             fp.close()
 
@@ -309,20 +319,24 @@ def create_database():
 
 
 def main():
+    subdirs = False
     if len( sys.argv ) == 1:
         print( "ERROR:  Require an SMS/MMS file to extract from" )
         sys.exit( 1 )
     else:
         for arg in sys.argv[1:]:
             ##  If they want help
-            if arg == "-h" or arg == "--help":
+            if arg in ( "-h", "--help" ):
                 print_help()
                 sys.exit( 0 )
             
             ##  If they want version/author info
-            if arg == "-V" or arg == "--version":
+            if arg in ( "-V", "--version" ):
                 print_version()
                 sys.exit( 0 )
+            
+            if arg in ( "-s", "--subdirs" ):
+                subdirs = True
             
             ##  Normal operation
             else:
@@ -338,7 +352,7 @@ def main():
                     extract( arg, cursor )
 
                     ##  Write all of the messages to disk
-                    write_messages( arg, mDir, fDir, cursor )
+                    write_messages( arg, mDir, fDir, cursor, subdirs )
 
                     ##  Close the database and cap off the output with a newline
                     db.close()
