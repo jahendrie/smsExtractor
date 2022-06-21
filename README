@@ -1,5 +1,5 @@
 ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-    smsExtractor.py     |   Version 1.2     |   FreeBSD License |   2015-09-14
+    smsExtractor.py     |   Version 1.3     |   FreeBSD License |   2022-06-21
     James Hendrie       |   hendrie.james@gmail.com
 ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
@@ -24,7 +24,7 @@
     http://play.google.com/store/apps/details?id=com.riteshsahu.SMSBackupRestore
 
     (Developer's site)
-    https://synctech.com.au/sms-backup-restore/
+    http://android.riteshsahu.com/apps/sms-backup-restore
 
     When run, this script will create a directory named after the file being
     processed (mmsFile will yield mmsFile.d, for instance), after which it will
@@ -33,7 +33,7 @@
 
     The text files will be placed into a 'messages' subdirectory with each phone
     number having its own conversation file.  The MMS files are all dumped into
-    the 'files' subdirectory or, optionally, to unique subdirectories.
+    the 'files' subdirectory.
 
 
 
@@ -70,7 +70,10 @@
     Options:
         -h or --help:       Print help text
         -V or --version:    Print version and author info
-        -s or --subdirs:    Write files to individual subdirectories per each contact.
+        -s or --subdirs:    Write files to each contact's own subdirectory
+        -f or --force:      Write into extant files, overwrite files that exist
+        -m or --multiple:   Write messages to multiple (individual) files
+
 
 
 ----------------------------------------
@@ -83,9 +86,6 @@ smsExtractor smsbackup01.xml
 smsExtractor smsbackup02.xml mmsbackup01.xml
     Similar to the above, except it extracts the contents of both files, each
     into their own directory.
-
-smsExtractor --subdirs smsbackup03.xml
-    Similar to the above, but files will be put into unique subdirectories named <address>_<contact info>.
 
 smsExtractor *.xml
     I think you get the picture.
@@ -102,4 +102,4 @@ smsExtractor *.xml
         http://www.someplacedumb.net/content/progs
 
     SMS Backup & Restore:
-        https://synctech.com.au/sms-backup-restore/
+        http://android.riteshsahu.com/apps/sms-backup-restore

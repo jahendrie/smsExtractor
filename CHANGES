@@ -1,1 +1,4 @@
 1.1     Initial public release
+1.2     Added --subdirs option (subdirectory per contact)
+1.3     Added --force option (overwrite stuff) and --multiple option (multiple
+        individual text files, 1 per message)
